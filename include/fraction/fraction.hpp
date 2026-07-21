@@ -10,6 +10,18 @@ namespace fraction {
     // const_abs: absolute value for signed integers
     // ---------------------------------------------------------------------------
 
+    /// @brief Compute the absolute value of a signed integer.
+    ///
+    /// @f[
+    ///     |x| = \begin{cases}
+    ///         x   & \text{if } x \ge 0 \\
+    ///         -x  & \text{if } x < 0
+    ///     \end{cases}
+    /// @f]
+    ///
+    /// @tparam T A signed integer type
+    /// @param[in] val Input value
+    /// @return The absolute value |val|
     template <typename T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, int> = 0>
     constexpr T const_abs(T val) noexcept {
         return val < 0 ? -val : val;
@@ -19,6 +31,36 @@ namespace fraction {
     // const_gcd: greatest common divisor (Euclidean algorithm)
     // ---------------------------------------------------------------------------
 
+    /// @brief Compute the greatest common divisor using Euclid's algorithm.
+    ///
+    /// The algorithm repeatedly replaces the larger number by its remainder
+    /// modulo the smaller number until one reaches zero.
+    ///
+    /// @f[
+    ///     \gcd(a, b) = \gcd(|b|, |a| \bmod |b|), \quad
+    ///     \gcd(a, 0) = |a|
+    /// @f]
+    ///
+    /// @dot
+    ///   digraph gcd_flow {
+    ///     bgcolor="transparent";
+    ///     rankdir=TB;
+    ///     node [shape=box, style=filled, fillcolor="#d4e6f1"];
+    ///     start [label="a = |a|, b = |b|", fillcolor="#a9cce3"];
+    ///     check [label="b == 0?", shape=diamond, fillcolor="#f9e79f"];
+    ///     swap  [label="t = b\nb = a % b\na = t"];
+    ///     done  [label="return |a|", fillcolor="#7fb3d8"];
+    ///     start -> check;
+    ///     check -> swap  [label="No", color="#e74c3c"];
+    ///     check -> done  [label="Yes", color="#27ae60"];
+    ///     swap  -> check;
+    ///   }
+    /// @enddot
+    ///
+    /// @tparam T A signed integer type
+    /// @param[in] a First operand
+    /// @param[in] b Second operand
+    /// @return gcd(a, b), always non-negative
     template <typename T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, int> = 0>
     constexpr T const_gcd(T a, T b) noexcept {
         a = const_abs(a);
@@ -35,6 +77,38 @@ namespace fraction {
     // Fraction<T> — a generic rational number type
     // ---------------------------------------------------------------------------
 
+    /// @brief A generic rational number (fraction) with signed integer arithmetic.
+    ///
+    /// Represents the number @f$\frac{n}{d}@f$ where the numerator @f$n@f$ and
+    /// denominator @f$d@f$ are of the same signed integer type @c T.
+    ///
+    /// **Special values:**
+    ///
+    /// @dot
+    ///   digraph special_values {
+    ///     bgcolor="transparent";
+    ///     rankdir=LR;
+    ///     node [shape=box, style=filled];
+    ///     zero    [label="Zero\nn = 0, d \ne 0", fillcolor="#d5f5e3"];
+    ///     one     [label="One\nn = d \ne 0", fillcolor="#a9cce3"];
+    ///     inf     [label="Infinity\nn = \pm 1, d = 0", fillcolor="#fadbd8"];
+    ///     nan     [label="NaN\nn = 0, d = 0", fillcolor="#fcf3cf"];
+    ///     rational [label="Rational\nn/d reduced", fillcolor="#d4e6f1"];
+    ///     zero -> one [style=dashed, color="#888", constraint=false];
+    ///     rational -> zero [label="n=0"];
+    ///     rational -> one [label="n=d"];
+    ///     rational -> inf [label="d=0, n\neq0"];
+    ///     rational -> nan [label="n=0, d=0", color="#e74c3c"];
+    ///   }
+    /// @enddot
+    ///
+    /// **Invariants:**
+    /// - The denominator is always kept positive (sign stored in numerator).
+    /// - Fractions are always reduced to lowest terms after @ref from() or
+    ///   @ref normalize().
+    /// - Raw construction via @ref from_raw() bypasses normalization.
+    ///
+    /// @tparam T A signed integer type (e.g. int, int64_t, int8_t)
     template <typename T> class Fraction {
         static_assert(std::is_integral_v<T> && std::is_signed_v<T>,
                       "Fraction<T> requires a signed integer type for T");
@@ -52,10 +126,21 @@ namespace fraction {
         // Constructors
         // -----------------------------------------------------------------------
 
-        /// Default: 0/1
+        /// @brief Default constructor: zero.
+        ///
+        /// Constructs the fraction @f$0/1@f$.
         constexpr Fraction() noexcept : numer_(0), denom_(1) {}
 
-        /// Raw (no normalisation) — public for advanced use
+        /// @brief Raw construction without normalization.
+        ///
+        /// Creates @f$\frac{num}{den}@f$ without normalizing. The caller
+        /// must ensure the result is in a valid state. Intended for
+        /// performance-critical paths where normalization is handled
+        /// separately.
+        ///
+        /// @param[in] num Numerator
+        /// @param[in] den Denominator
+        /// @return A raw (possibly unnormalized) fraction
         constexpr static Fraction from_raw(T num, T den) noexcept {
             Fraction f;
             f.numer_ = num;
@@ -63,63 +148,98 @@ namespace fraction {
             return f;
         }
 
-        /// Normalised constructor
+        /// @brief Normalised construction.
+        ///
+        /// Constructs @f$\frac{num}{den}@f$, then normalizes: the denominator
+        /// is made positive and the fraction is reduced to lowest terms.
+        ///
+        /// @param[in] num Numerator
+        /// @param[in] den Denominator (zero yields infinity; zero/zero yields NaN)
+        /// @return A normalized fraction
         constexpr static Fraction from(T num, T den) noexcept { return Fraction(num, den, true); }
 
-        /// Zero constant: 0/1
+        /// @brief Zero constant: @f$0/1@f$.
         constexpr static Fraction zero() noexcept { return from_raw(0, 1); }
 
-        /// One constant: 1/1
+        /// @brief One constant: @f$1/1@f$.
         constexpr static Fraction one() noexcept { return from_raw(1, 1); }
 
         // -----------------------------------------------------------------------
         // Accessors
         // -----------------------------------------------------------------------
 
+        /// @brief Return the numerator @f$n@f$.
         constexpr const T& numer() const noexcept { return numer_; }
+
+        /// @brief Return the denominator @f$d@f$ (always positive).
         constexpr const T& denom() const noexcept { return denom_; }
 
         // -----------------------------------------------------------------------
         // Predicates
         // -----------------------------------------------------------------------
 
+        /// @brief Check whether the fraction equals zero.
+        ///
+        /// A fraction is zero when its numerator is zero and its denominator
+        /// is non-zero: @f$\frac{0}{d} = 0@f$.
         constexpr bool is_zero() const noexcept { return numer_ == 0 && denom_ != 0; }
 
+        /// @brief Check whether the fraction equals one.
+        ///
+        /// A fraction equals one when numerator and denominator are equal
+        /// and non-zero: @f$\frac{n}{n} = 1@f$.
         constexpr bool is_one() const noexcept { return numer_ == denom_ && numer_ != 0; }
 
+        /// @brief Check whether the fraction represents infinity.
+        ///
+        /// Infinity occurs when the denominator is zero and the numerator
+        /// is non-zero: @f$\frac{\pm 1}{0} = \pm\infty@f$.
         constexpr bool is_infinite() const noexcept { return numer_ != 0 && denom_ == 0; }
 
+        /// @brief Check whether the fraction is NaN (Not-a-Number).
+        ///
+        /// NaN occurs when both numerator and denominator are zero:
+        /// @f$\frac{0}{0}@f$ is undefined.
         constexpr bool is_nan() const noexcept { return numer_ == 0 && denom_ == 0; }
 
+        /// @brief Check whether the fraction is strictly positive.
         constexpr bool is_positive() const noexcept { return numer_ > 0; }
 
+        /// @brief Check whether the fraction is strictly negative.
         constexpr bool is_negative() const noexcept { return numer_ < 0; }
 
         // -----------------------------------------------------------------------
         // Mutators
         // -----------------------------------------------------------------------
 
+        /// @brief Set the fraction to zero: @f$0/1@f$.
         constexpr void set_zero() noexcept {
             numer_ = 0;
             denom_ = 1;
         }
 
+        /// @brief Set the fraction to one: @f$1/1@f$.
         constexpr void set_one() noexcept {
             numer_ = 1;
             denom_ = 1;
         }
 
+        /// @brief Set the fraction to positive infinity: @f$1/0@f$.
         constexpr void set_infinite() noexcept {
             numer_ = 1;
             denom_ = 0;
         }
 
+        /// @brief Set the fraction to NaN: @f$0/0@f$.
         constexpr void set_nan() noexcept {
             numer_ = 0;
             denom_ = 0;
         }
 
-        /// Keep denominator positive by flipping signs if needed
+        /// @brief Ensure the denominator is positive.
+        ///
+        /// If @f$d < 0@f$, flips both signs:
+        /// @f$\frac{n}{d} = \frac{-n}{-d}@f$.
         constexpr void keep_denom_positive() noexcept {
             if (denom_ < 0) {
                 numer_ = -numer_;
@@ -127,8 +247,15 @@ namespace fraction {
             }
         }
 
-        /// Reduce fraction by dividing numerator and denominator by their GCD.
-        /// Returns the GCD that was divided out.
+        /// @brief Reduce the fraction to lowest terms.
+        ///
+        /// Divides numerator and denominator by their GCD:
+        /// @f[
+        ///     \frac{n}{d} \to \frac{n / g}{d / g}, \qquad
+        ///     g = \gcd(n, d)
+        /// @f]
+        ///
+        /// @return The GCD @f$g@f$ that was divided out.
         constexpr T reduce() noexcept {
             T g = const_gcd(numer_, denom_);
             if (g != 0 && g != 1) {
@@ -138,14 +265,31 @@ namespace fraction {
             return g;
         }
 
-        /// Normalise: keep denominator positive then reduce.
-        /// Returns the GCD that was divided out.
+        /// @brief Normalise the fraction.
+        ///
+        /// First ensures the denominator is positive, then reduces to
+        /// lowest terms. Equivalent to:
+        /// @f[
+        ///     \frac{n}{d} \to
+        ///     \frac{ \operatorname{sgn}(d) \cdot n / g }
+        ///          { |d| / g },
+        ///     \qquad g = \gcd(n, d)
+        /// @f]
+        ///
+        /// @return The GCD @f$g@f$ that was divided out.
         constexpr T normalize() noexcept {
             keep_denom_positive();
             return reduce();
         }
 
-        /// Swap numerator and denominator (the fraction is inverted).
+        /// @brief Swap numerator and denominator (invert the fraction).
+        ///
+        /// @f[
+        ///     \left(\frac{n}{d}\right)^{-1} = \frac{d}{n}
+        /// @f]
+        ///
+        /// After swapping, @ref keep_denom_positive() is called to
+        /// maintain the invariant.
         constexpr void reciprocal() noexcept {
             T tmp = numer_;
             numer_ = denom_;
@@ -157,20 +301,56 @@ namespace fraction {
         // Computed properties
         // -----------------------------------------------------------------------
 
+        /// @brief Return the absolute value of the fraction.
+        ///
+        /// @f[
+        ///     \left|\frac{n}{d}\right| =
+        ///     \begin{cases}
+        ///         \frac{n}{d}  & \text{if } n \ge 0 \\[2pt]
+        ///         -\frac{n}{d} & \text{if } n < 0
+        ///     \end{cases}
+        /// @f]
         constexpr Fraction abs() const noexcept { return is_negative() ? -*this : *this; }
 
+        /// @brief Return the signum (sign) of the fraction.
+        ///
+        /// @f[
+        ///     \operatorname{sgn}\!\left(\frac{n}{d}\right) =
+        ///     \begin{cases}
+        ///         1   & \text{if } n > 0 \\
+        ///         0   & \text{if } n = 0 \\
+        ///         -1  & \text{if } n < 0
+        ///     \end{cases}
+        /// @f]
         constexpr Fraction signum() const noexcept {
             if (is_positive()) return one();
             if (is_zero()) return zero();
             return -one();
         }
 
-        /// Cross product:  a*d - b*c   (where self = a/b, rhs = c/d)
+        /// @brief Compute the cross product with another fraction.
+        ///
+        /// @f[
+        ///     \operatorname{cross}\!\left(\frac{a}{b},
+        ///                             \frac{c}{d}\right) = a d - b c
+        /// @f]
+        ///
+        /// This is the determinant of the 2x2 matrix formed by the
+        /// two fractions' numerators and denominators.
+        ///
+        /// @param[in] rhs The right-hand side fraction @f$c/d@f$
+        /// @return The scalar value @f$ad - bc@f$
         constexpr T cross(const Fraction& rhs) const noexcept {
             return numer_ * rhs.denom_ - denom_ * rhs.numer_;
         }
 
-        /// Multiplicative inverse (reciprocal)
+        /// @brief Compute the multiplicative inverse.
+        ///
+        /// @f[
+        ///     \left(\frac{n}{d}\right)^{-1} = \frac{d}{n}
+        /// @f]
+        ///
+        /// @return The reciprocal fraction
         constexpr Fraction inv() const noexcept {
             Fraction r = *this;
             r.reciprocal();
@@ -187,6 +367,17 @@ namespace fraction {
         // Compound assignment (Fraction)
         // -----------------------------------------------------------------------
 
+        /// @brief Add a fraction to this one.
+        ///
+        /// @f[
+        ///     \frac{a}{b} + \frac{c}{d} = \frac{ad + bc}{bd}
+        /// @f]
+        ///
+        /// Handles NaN/Inf propagation and uses cross-reduction for
+        /// smaller intermediate values.
+        ///
+        /// @param[in] rhs The fraction @f$c/d@f$ to add
+        /// @return Reference to @c *this
         constexpr Fraction& operator+=(const Fraction& rhs) noexcept {
             if (is_nan() || rhs.is_nan()) {
                 set_nan();
@@ -239,6 +430,14 @@ namespace fraction {
             return *this;
         }
 
+        /// @brief Subtract a fraction from this one.
+        ///
+        /// @f[
+        ///     \frac{a}{b} - \frac{c}{d} = \frac{ad - bc}{bd}
+        /// @f]
+        ///
+        /// @param[in] rhs The fraction @f$c/d@f$ to subtract
+        /// @return Reference to @c *this
         constexpr Fraction& operator-=(const Fraction& rhs) noexcept {
             if (is_nan() || rhs.is_nan()) {
                 set_nan();
@@ -290,6 +489,14 @@ namespace fraction {
             return *this;
         }
 
+        /// @brief Multiply this fraction by another.
+        ///
+        /// @f[
+        ///     \frac{a}{b} \times \frac{c}{d} = \frac{ac}{bd}
+        /// @f]
+        ///
+        /// @param[in] rhs The fraction @f$c/d@f$ to multiply by
+        /// @return Reference to @c *this
         constexpr Fraction& operator*=(const Fraction& rhs) noexcept {
             if (is_nan() || rhs.is_nan()) {
                 set_nan();
@@ -325,6 +532,14 @@ namespace fraction {
             return *this;
         }
 
+        /// @brief Divide this fraction by another.
+        ///
+        /// @f[
+        ///     \frac{a}{b} \div \frac{c}{d} = \frac{ad}{bc}
+        /// @f]
+        ///
+        /// @param[in] rhs The fraction @f$c/d@f$ to divide by
+        /// @return Reference to @c *this
         constexpr Fraction& operator/=(const Fraction& rhs) noexcept {
             if (is_nan() || rhs.is_nan()) {
                 set_nan();
@@ -420,12 +635,21 @@ namespace fraction {
         // Equality / ordering
         // -----------------------------------------------------------------------
 
+        /// @brief Equality comparison: @f$\frac{a}{b} = \frac{c}{d} \iff a = c \land b = d@f$.
         constexpr bool operator==(const Fraction& rhs) const noexcept {
             return numer_ == rhs.numer_ && denom_ == rhs.denom_;
         }
 
+        /// @brief Inequality comparison.
         constexpr bool operator!=(const Fraction& rhs) const noexcept { return !(*this == rhs); }
 
+        /// @brief Less-than comparison.
+        ///
+        /// Compares two fractions by cross-multiplication:
+        /// @f[
+        ///     \frac{a}{b} < \frac{c}{d} \iff ad < bc
+        /// @f]
+        /// If both denominators are equal, the numerators are compared directly.
         constexpr bool operator<(const Fraction& rhs) const noexcept {
             if (denom_ == rhs.denom_) return numer_ < rhs.numer_;
             // Cross-multiply with reduction
@@ -557,6 +781,11 @@ namespace fraction {
         // Streaming
         // -----------------------------------------------------------------------
 
+        /// @brief Stream output.
+        ///
+        /// Prints the fraction as @c "n/d", or @c "inf", @c "-inf", @c "nan"
+        /// for special values. Integer values (denominator = 1) print as
+        /// a plain number.
         friend std::ostream& operator<<(std::ostream& os, const Fraction& f) {
             if (f.is_nan()) {
                 os << "nan";
@@ -575,6 +804,36 @@ namespace fraction {
     // archimedes: triangle area using Archimedes' formula
     // ---------------------------------------------------------------------------
 
+    /// @brief Compute a triangle-related discriminant using Archimedes' formula.
+    ///
+    /// Given three fractional side lengths @f$a, b, c@f$, computes:
+    /// @f[
+    ///     \Delta = 4ab - (a + b - c)^2
+    /// @f]
+    ///
+    /// This quantity is related to the triangle's area via Heron's formula.
+    /// For a valid triangle with sides satisfying the triangle inequality,
+    /// @f$\Delta > 0@f$.
+    ///
+    /// @dot
+    ///   digraph archimedes_delta {
+    ///     bgcolor="transparent";
+    ///     rankdir=LR;
+    ///     node [shape=box, style=filled, fillcolor="#d4e6f1"];
+    ///     ab  [label="4ab", fillcolor="#a9cce3"];
+    ///     sum [label="a + b - c", fillcolor="#f9e79f"];
+    ///     sq  [label="(a+b-c)^2", fillcolor="#fadbd8"];
+    ///     sub [label="\u0394 = 4ab - (a+b-c)^2", fillcolor="#7fb3d8"];
+    ///     ab -> sub;
+    ///     sum -> sq -> sub;
+    ///   }
+    /// @enddot
+    ///
+    /// @tparam T A Fraction type (must support @ref Fraction::from_raw)
+    /// @param[in] side_a First side length
+    /// @param[in] side_b Second side length
+    /// @param[in] side_c Third side length
+    /// @return The discriminant @f$\Delta@f$
     template <typename T>
     constexpr T archimedes(const T& side_a, const T& side_b, const T& side_c) {
         T temp_sum = side_a + side_b - side_c;
