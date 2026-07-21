@@ -1,0 +1,32 @@
+name: xmake
+
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+
+jobs:
+  xmake:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Configure (release)
+        run: xmake f -y -m release
+
+      - name: Build
+        run: xmake
+
+      - name: Test
+        run: xmake run test_fraction
