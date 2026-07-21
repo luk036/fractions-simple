@@ -1,4 +1,4 @@
-# Agent Guidelines for fractions-cpp
+# Agent Guidelines for fractions-simple
 
 ## Project Overview
 
