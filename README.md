@@ -1,6 +1,6 @@
-# fractions-cpp
+# fractions-simple
 
-C++ port of [fractions-rs](https://github.com/luk036/fractions-rs) — a header-only library for
+Simplified C++ port of [fractions-rs](https://github.com/luk036/fractions-rs) — a header-only library for
 fractional number arithmetic with generic signed integer types.
 
 ## Features
