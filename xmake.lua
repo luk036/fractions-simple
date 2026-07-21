@@ -3,7 +3,7 @@ set_languages("c++17")
 set_warnings("all", "error")
 
 if is_plat("windows") then
-    add_cxflags("/utf-8")
+    add_cxflags("/utf-8", "/W4", "/wd4819")
 end
 
 -- mode.coverage adds --coverage which only GCC/Clang support
@@ -12,6 +12,7 @@ if not is_plat("windows") then
 end
 
 add_requires("doctest")
+add_requires("nanobench")
 
 target("fraction")
     set_kind("headeronly")
@@ -24,6 +25,13 @@ target("test_fraction")
     add_files("tests/test_fraction.cpp")
     add_includedirs("include")
     add_packages("doctest")
+
+target("benchmark_fraction")
+    set_kind("binary")
+    add_deps("fraction")
+    add_files("tests/benchmark_fraction.cpp")
+    add_includedirs("include")
+    add_packages("nanobench")
 
 -- ---------------------------------------------------------------------------
 -- Format tasks (clang-format + cmake-format)
@@ -43,6 +51,7 @@ task("format")
         local sources = {
             "include/fraction/fraction.hpp",
             "tests/test_fraction.cpp",
+            "tests/benchmark_fraction.cpp",
             "CMakeLists.txt",
             "xmake.lua",
             "cmake/CPM.cmake",
@@ -93,6 +102,7 @@ task("fix-format")
         local sources = {
             "include/fraction/fraction.hpp",
             "tests/test_fraction.cpp",
+            "tests/benchmark_fraction.cpp",
             "CMakeLists.txt",
             "xmake.lua",
             "cmake/CPM.cmake",

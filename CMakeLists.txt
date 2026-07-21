@@ -12,9 +12,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(GNUInstallDirs)
 
 # ---------------------------------------------------------------------------
+# Compiler warnings (as errors)
+# ---------------------------------------------------------------------------
+
+function(target_enable_warnings TARGET)
+  if(MSVC)
+    target_compile_options(${TARGET} PRIVATE /W4 /WX /wd4819)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  endif()
+endfunction()
+
+# ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
 option(FRACTION_BUILD_TESTS "Build tests" ON)
+option(FRACTION_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(FRACTION_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(FRACTION_ENABLE_FORMAT "Enable format targets" ON)
 
@@ -51,13 +64,14 @@ if(FRACTION_BUILD_TESTS)
   endif()
 
   add_library(doctest INTERFACE)
-  target_include_directories(doctest INTERFACE "${DOCTEST_DIR}")
+  target_include_directories(doctest SYSTEM INTERFACE "${DOCTEST_DIR}")
   if(MSVC)
     target_compile_options(doctest INTERFACE /wd5285)
   endif()
 
   add_executable(test_fraction tests/test_fraction.cpp)
   target_link_libraries(test_fraction PRIVATE fraction doctest)
+  target_enable_warnings(test_fraction)
 
   if(MSVC)
     target_compile_options(test_fraction PRIVATE /utf-8)
@@ -71,6 +85,42 @@ if(FRACTION_BUILD_TESTS)
   endif()
 
   add_test(NAME test_fraction COMMAND test_fraction)
+endif()
+
+# ---------------------------------------------------------------------------
+# Benchmarks
+# ---------------------------------------------------------------------------
+
+if(FRACTION_BUILD_BENCHMARKS)
+  set(NANOBENCH_VERSION 4.3.11)
+  set(NANOBENCH_DIR "${CMAKE_BINARY_DIR}/_deps/nanobench")
+  set(NANOBENCH_HEADER "${NANOBENCH_DIR}/nanobench.h")
+
+  if(NOT EXISTS "${NANOBENCH_HEADER}")
+    file(MAKE_DIRECTORY "${NANOBENCH_DIR}")
+    file(DOWNLOAD
+         "https://raw.githubusercontent.com/martinus/nanobench/v${NANOBENCH_VERSION}/src/include/nanobench.h"
+         "${NANOBENCH_HEADER}" STATUS download_status
+    )
+    list(GET download_status 0 status_code)
+    if(NOT status_code EQUAL 0)
+      message(FATAL_ERROR "Failed to download nanobench (status ${status_code})")
+    endif()
+  endif()
+
+  add_library(nanobench INTERFACE)
+  target_include_directories(nanobench SYSTEM INTERFACE "${NANOBENCH_DIR}")
+
+  add_executable(benchmark_fraction tests/benchmark_fraction.cpp)
+  target_link_libraries(benchmark_fraction PRIVATE fraction nanobench)
+  target_enable_warnings(benchmark_fraction)
+
+  add_custom_target(
+    run_benchmark
+    COMMAND benchmark_fraction
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Running benchmark_fraction"
+  )
 endif()
 
 # ---------------------------------------------------------------------------

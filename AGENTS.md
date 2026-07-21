@@ -136,8 +136,32 @@ xmake fix-format      # apply formatting fixes
 pip install clang-format cmake_format pyyaml
 ```
 
+## Benchmarks
+
+### xmake
+
+```bash
+xmake f -m release    # configure in release mode
+xmake                 # build
+xmake run benchmark_fraction  # run benchmarks
+```
+
+### CMake
+
+```bash
+cmake -B build -DFRACTION_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cmake --build build --target run_benchmark   # run benchmarks
+# or directly:
+./build/benchmark_fraction
+```
+
+Uses [nanobench](https://github.com/martinus/nanobench) v4.3.11 (single-header microbenchmark library).
+Benchmarks cover: const_gcd, construction, arithmetic, comparison, cross product, archimedes, and normalization — across `int` and `int64_t` types.
+
 ## Before Committing
 
 1. Run `xmake f -m release && xmake run test_fraction` (or CMake equivalent)
 2. Run `xmake format` to check formatting
 3. Ensure all 45 test cases and 190+ assertions pass
+4. If benchmarks were modified, verify with `xmake run benchmark_fraction`
