@@ -136,10 +136,8 @@ if(FRACTION_ENABLE_CLANG_TIDY)
   if(CLANG_TIDY)
     add_custom_target(
       clang-tidy
-      COMMAND ${CLANG_TIDY}
-        --extra-arg=-std=c++17
-        --extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/fraction/fraction.hpp
+      COMMAND ${CLANG_TIDY} --extra-arg=-std=c++17 --extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/include
+              ${CMAKE_CURRENT_SOURCE_DIR}/include/fraction/fraction.hpp
       COMMENT "Running clang-tidy static analysis"
     )
   else()
