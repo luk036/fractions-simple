@@ -1,9 +1,10 @@
 add_rules("mode.debug", "mode.release")
 set_languages("c++17")
-set_warnings("all", "error")
 
 if is_plat("windows") then
-    add_cxflags("/utf-8", "/W4", "/wd4819")
+    add_cxflags("/utf-8", "/W4", "/WX", "/wd4819")
+else
+    add_cxflags("-Wall", "-Wextra", "-Wpedantic", "-Werror")
 end
 
 -- mode.coverage adds --coverage which only GCC/Clang support
