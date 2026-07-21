@@ -76,11 +76,20 @@ endif()
 if(FRACTION_ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
     find_program(GCOVR_PATH gcovr)
     if(GCOVR_PATH)
+        set(extra_gcovr_args "")
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang")
+            find_program(LLVM_COV_PATH llvm-cov)
+            if(LLVM_COV_PATH)
+                list(APPEND extra_gcovr_args --llvm-cov-binary ${LLVM_COV_PATH})
+            endif()
+        endif()
         add_custom_target(coverage
             COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
             COMMAND ${GCOVR_PATH} --root ${PROJECT_SOURCE_DIR}
                 --html-details ${CMAKE_BINARY_DIR}/coverage/index.html
                 --exclude tests/
+                ${extra_gcovr_args}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMENT "Generating coverage report in ${CMAKE_BINARY_DIR}/coverage/index.html"
         )
