@@ -10,18 +10,18 @@ namespace fraction {
     // const_abs: absolute value for signed integers
     // ---------------------------------------------------------------------------
 
-    /// @brief Compute the absolute value of a signed integer.
-    ///
-    /// @f[
-    ///     |x| = \begin{cases}
-    ///         x   & \text{if } x \ge 0 \\
-    ///         -x  & \text{if } x < 0
-    ///     \end{cases}
-    /// @f]
-    ///
-    /// @tparam T A signed integer type
-    /// @param[in] val Input value
-    /// @return The absolute value |val|
+    /** @brief Compute the absolute value of a signed integer.
+     *
+     *  @f[
+     *      |x| = \begin{cases}
+     *          x   & \text{if } x \ge 0 \\
+     *          -x  & \text{if } x < 0
+     *      \end{cases}
+     *  @f]
+     *
+     *  @tparam T A signed integer type
+     *  @param[in] val Input value
+     *  @return The absolute value |val| */
     template <typename T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, int> = 0>
     constexpr T const_abs(T val) noexcept {
         return val < 0 ? -val : val;
@@ -312,16 +312,16 @@ namespace fraction {
         /// @f]
         constexpr Fraction abs() const noexcept { return is_negative() ? -*this : *this; }
 
-        /// @brief Return the signum (sign) of the fraction.
-        ///
-        /// @f[
-        ///     \operatorname{sgn}\!\left(\frac{n}{d}\right) =
-        ///     \begin{cases}
-        ///         1   & \text{if } n > 0 \\
-        ///         0   & \text{if } n = 0 \\
-        ///         -1  & \text{if } n < 0
-        ///     \end{cases}
-        /// @f]
+        /** @brief Return the signum (sign) of the fraction.
+         *
+         *  @f[
+         *      \operatorname{sgn}\!\left(\frac{n}{d}\right) =
+         *      \begin{cases}
+         *          1   & \text{if } n > 0 \\
+         *          0   & \text{if } n = 0 \\
+         *          -1  & \text{if } n < 0
+         *      \end{cases}
+         *  @f] */
         constexpr Fraction signum() const noexcept {
             if (is_positive()) return one();
             if (is_zero()) return zero();
