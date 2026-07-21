@@ -159,6 +159,42 @@ cmake --build build --target run_benchmark   # run benchmarks
 Uses [nanobench](https://github.com/martinus/nanobench) v4.3.11 (single-header microbenchmark library).
 Benchmarks cover: const_gcd, construction, arithmetic, comparison, cross product, archimedes, and normalization — across `int` and `int64_t` types.
 
+## Doxygen Documentation
+
+### xmake
+
+```bash
+xmake doxygen    # generate HTML docs in docs/doxygen/
+```
+
+### CMake
+
+```bash
+cmake -B build -DFRACTION_BUILD_DOCS=ON
+cmake --build build --target doxygen  # generate HTML docs in docs/doxygen/
+```
+
+Requires [Doxygen](https://www.doxygen.nl/) (`pip install doxygen`).
+Generated HTML is at `docs/doxygen/html/index.html`.
+
+## clang-tidy
+
+### xmake
+
+```bash
+xmake clang-tidy    # run clang-tidy static analysis
+```
+
+### CMake
+
+```bash
+cmake -B build -DFRACTION_ENABLE_CLANG_TIDY=ON
+cmake --build build --target clang-tidy
+```
+
+Configuration in `.clang-tidy` enables clang-diagnostic, clang-analyzer, bugprone, modernize,
+performance, and readability check groups — all warnings treated as errors.
+
 ## Before Committing
 
 1. Run `xmake f -m release && xmake run test_fraction` (or CMake equivalent)

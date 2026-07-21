@@ -28,6 +28,8 @@ endfunction()
 # ---------------------------------------------------------------------------
 option(FRACTION_BUILD_TESTS "Build tests" ON)
 option(FRACTION_BUILD_BENCHMARKS "Build benchmarks" OFF)
+option(FRACTION_BUILD_DOCS "Build Doxygen documentation" OFF)
+option(FRACTION_ENABLE_CLANG_TIDY "Enable clang-tidy analysis" OFF)
 option(FRACTION_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(FRACTION_ENABLE_FORMAT "Enable format targets" ON)
 
@@ -98,9 +100,11 @@ if(FRACTION_BUILD_BENCHMARKS)
 
   if(NOT EXISTS "${NANOBENCH_HEADER}")
     file(MAKE_DIRECTORY "${NANOBENCH_DIR}")
-    file(DOWNLOAD
-         "https://raw.githubusercontent.com/martinus/nanobench/v${NANOBENCH_VERSION}/src/include/nanobench.h"
-         "${NANOBENCH_HEADER}" STATUS download_status
+    file(
+      DOWNLOAD
+      "https://raw.githubusercontent.com/martinus/nanobench/v${NANOBENCH_VERSION}/src/include/nanobench.h"
+      "${NANOBENCH_HEADER}"
+      STATUS download_status
     )
     list(GET download_status 0 status_code)
     if(NOT status_code EQUAL 0)
@@ -121,6 +125,47 @@ if(FRACTION_BUILD_BENCHMARKS)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Running benchmark_fraction"
   )
+endif()
+
+# ---------------------------------------------------------------------------
+# clang-tidy
+# ---------------------------------------------------------------------------
+
+if(FRACTION_ENABLE_CLANG_TIDY)
+  find_program(CLANG_TIDY clang-tidy)
+  if(CLANG_TIDY)
+    add_custom_target(
+      clang-tidy
+      COMMAND ${CLANG_TIDY}
+        --extra-arg=-std=c++17
+        --extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/fraction/fraction.hpp
+      COMMENT "Running clang-tidy static analysis"
+    )
+  else()
+    message(WARNING "clang-tidy not found — analysis target unavailable")
+  endif()
+endif()
+
+# ---------------------------------------------------------------------------
+# Doxygen documentation
+# ---------------------------------------------------------------------------
+
+if(FRACTION_BUILD_DOCS)
+  find_package(Doxygen QUIET)
+  if(DOXYGEN_FOUND)
+    add_custom_target(
+      doxygen
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen
+      COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Generating Doxygen HTML documentation in docs/doxygen/"
+    )
+  else()
+    message(
+      WARNING "Doxygen not found — docs target unavailable. Install with: pip install doxygen"
+    )
+  endif()
 endif()
 
 # ---------------------------------------------------------------------------

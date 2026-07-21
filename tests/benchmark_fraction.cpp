@@ -1,9 +1,8 @@
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include <nanobench.h>
 
-#include <fraction/fraction.hpp>
-
 #include <cstdint>
+#include <fraction/fraction.hpp>
 
 using fraction::archimedes;
 using fraction::const_abs;

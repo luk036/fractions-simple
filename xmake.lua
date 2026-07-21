@@ -92,6 +92,49 @@ task("format")
         end
     end)
 
+-- ---------------------------------------------------------------------------
+-- clang-tidy task
+-- ---------------------------------------------------------------------------
+
+task("clang-tidy")
+    set_category("format")
+    set_menu {
+        usage = "xmake clang-tidy [options]",
+        description = "Run clang-tidy static analysis",
+    }
+    on_run(function()
+        local ea = {"--extra-arg=-std=c++17", "--extra-arg=-Iinclude"}
+        local args = {"clang-tidy", "--quiet"}
+        for _, a in ipairs(ea) do
+            table.insert(args, a)
+        end
+        table.insert(args, "include/fraction/fraction.hpp")
+        if not os.exec(table.concat(args, " ")) then
+            os.exit(1)
+        end
+    end)
+
+-- ---------------------------------------------------------------------------
+-- Doxygen task
+-- ---------------------------------------------------------------------------
+
+task("doxygen")
+    set_category("doc")
+    set_menu {
+        usage = "xmake doxygen",
+        description = "Generate Doxygen HTML documentation",
+    }
+    on_run(function()
+        os.mkdir("docs/doxygen")
+        local ok, err = os.iorun("doxygen Doxyfile")
+        if ok then
+            print("Doxygen documentation generated in docs/doxygen/")
+        else
+            print("Error: doxygen not found or failed. Install with: pip install doxygen")
+            os.exit(1)
+        end
+    end)
+
 task("fix-format")
     set_category("format")
     set_menu {

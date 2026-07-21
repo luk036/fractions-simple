@@ -1,0 +1,33 @@
+Checks: >-
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -readability-braces-around-statements,
+  -readability-magic-numbers,
+  -readability-math-missing-parentheses,
+  -readability-identifier-length,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-type-vararg,
+  -hicpp-avoid-magic-numbers,
+  -hicpp-no-array-decay,
+  -hicpp-vararg,
+  -llvm-header-guard,
+  -llvm-include-order,
+  -misc-use-anonymous-namespace,
+  -fuchsia-*,
+  -abseil-*,
+  -altera-*,
+  -zircon-*,
+WarningsAsErrors: '*'
+HeaderFilterRegex: 'include/.*\.hpp'
+FormatStyle: file
+CheckOptions:
+  - key: readability-function-cognitive-complexity.Threshold
+    value: '50'

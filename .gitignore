@@ -23,3 +23,6 @@ CMakeUserPresets.json
 # CPM.cmake cache
 cpm_modules/
 .cache/
+
+# Doxygen
+docs/doxygen/
