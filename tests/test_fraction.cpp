@@ -1,12 +1,13 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+
 #include <fraction/fraction.hpp>
 #include <sstream>
 
-using fraction::Fraction;
+using fraction::archimedes;
 using fraction::const_abs;
 using fraction::const_gcd;
-using fraction::archimedes;
+using fraction::Fraction;
 
 // ===========================================================================
 // const_abs / const_gcd
@@ -399,9 +400,7 @@ TEST_CASE("absolute value") {
     CHECK(Fraction<int>::from(3, -4).abs() == Fraction<int>::from(3, 4));
 }
 
-TEST_CASE("negation") {
-    CHECK(-Fraction<int>::from(-3, 4) == Fraction<int>::from(-3, 4).abs());
-}
+TEST_CASE("negation") { CHECK(-Fraction<int>::from(-3, 4) == Fraction<int>::from(-3, 4).abs()); }
 
 TEST_CASE("reciprocal") {
     CHECK(Fraction<int>::from(2, 1).inv() == Fraction<int>::from(1, 2));

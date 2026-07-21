@@ -31,7 +31,9 @@ include/
     └── fraction.hpp      # Single-header Fraction<T> (C++17, header-only)
 tests/
 └── test_fraction.cpp     # 45 doctest test cases (~190 assertions)
-CMakeLists.txt            # CMake build (FetchContent for doctest)
+CMakeLists.txt            # CMake build (FetchContent for doctest, Format.cmake for formatting)
+cmake/
+└── CPM.cmake             # CPM dependency manager
 xmake.lua                 # xmake build (preferred)
 ```
 
@@ -51,6 +53,7 @@ xmake.lua                 # xmake build (preferred)
 - K&R brace style (opening brace on same line)
 - Spaces around operators and after commas
 - No trailing whitespace
+- Formatting enforced via `.clang-format` (Google-derived) and `.cmake-format`
 
 ### Includes
 
@@ -109,7 +112,32 @@ cmake --build build --target coverage   # runs tests + generates report
 
 Report is written to `build/coverage/index.html`.
 
+## Formatting
+
+### CMake (uses Format.cmake via CPM)
+
+```bash
+cmake -B build -DFRACTION_BUILD_TESTS=OFF
+cmake --build build --target format      # check formatting (dry-run)
+cmake --build build --target fix-format  # apply formatting fixes
+cmake --build build --target check-format # exit 1 if unformatted (CI use)
+```
+
+### xmake
+
+```bash
+xmake format          # check formatting (dry-run)
+xmake fix-format      # apply formatting fixes
+```
+
+### Requirements
+
+```bash
+pip install clang-format cmake_format pyyaml
+```
+
 ## Before Committing
 
 1. Run `xmake f -m release && xmake run test_fraction` (or CMake equivalent)
-2. Ensure all 45 test cases and 190+ assertions pass
+2. Run `xmake format` to check formatting
+3. Ensure all 45 test cases and 190+ assertions pass

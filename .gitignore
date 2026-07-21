@@ -19,3 +19,7 @@ Thumbs.db
 
 # CMake
 CMakeUserPresets.json
+
+# CPM.cmake cache
+cpm_modules/
+.cache/
