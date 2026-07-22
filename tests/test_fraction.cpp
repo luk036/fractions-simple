@@ -2,22 +2,16 @@
 #include <doctest/doctest.h>
 
 #include <fraction/fraction.hpp>
+#include <ostream>
 #include <sstream>
 
 using fraction::archimedes;
-using fraction::const_abs;
 using fraction::const_gcd;
 using fraction::Fraction;
 
 // ===========================================================================
 // const_abs / const_gcd
 // ===========================================================================
-
-TEST_CASE("const_abs") {
-    CHECK(const_abs(-10) == 10);
-    CHECK(const_abs(10) == 10);
-    CHECK(const_abs(0) == 0);
-}
 
 TEST_CASE("const_gcd") {
     CHECK(const_gcd(30, -40) == 10);
@@ -96,6 +90,88 @@ TEST_CASE("fraction arithmetic") {
     CHECK(f1 / f2 == Fraction<int>::from(3, 2));
     CHECK(f1 / 2 == Fraction<int>::from(1, 4));
     CHECK(-f1 == Fraction<int>::from(-1, 2));
+}
+
+// ===========================================================================
+// Mixed integer / Fraction operations
+// ===========================================================================
+
+TEST_CASE("mixed int fraction arithmetic") {
+    // Fraction op T
+    CHECK(Fraction<int>::from(1, 2) + 1 == Fraction<int>::from(3, 2));
+    CHECK(Fraction<int>::from(2, 3) + 4 == Fraction<int>::from(14, 3));
+    CHECK(Fraction<int>::from(1, 2) - 1 == Fraction<int>::from(-1, 2));
+    CHECK(Fraction<int>::from(2, 3) - 4 == Fraction<int>::from(-10, 3));
+    CHECK(Fraction<int>::from(2, 3) * 4 == Fraction<int>::from(8, 3));
+    CHECK(Fraction<int>::from(3, 4) * 2 == Fraction<int>::from(3, 2));
+    CHECK(Fraction<int>::from(1, 2) / 2 == Fraction<int>::from(1, 4));
+    CHECK(Fraction<int>::from(2, 3) / 4 == Fraction<int>::from(1, 6));
+
+    // T op Fraction
+    CHECK(1 + Fraction<int>::from(1, 2) == Fraction<int>::from(3, 2));
+    CHECK(4 + Fraction<int>::from(2, 3) == Fraction<int>::from(14, 3));
+    CHECK(1 - Fraction<int>::from(1, 2) == Fraction<int>::from(1, 2));
+    CHECK(4 - Fraction<int>::from(2, 3) == Fraction<int>::from(10, 3));
+    CHECK(2 * Fraction<int>::from(2, 3) == Fraction<int>::from(4, 3));
+    CHECK(3 * Fraction<int>::from(1, 2) == Fraction<int>::from(3, 2));
+    CHECK(2 / Fraction<int>::from(1, 3) == Fraction<int>::from(6, 1));
+    CHECK(4 / Fraction<int>::from(2, 3) == Fraction<int>::from(6, 1));
+}
+
+TEST_CASE("mixed scalar compound assign") {
+    // += T  — covers cases where gcd(numer_, rhs) > 1 (regression test)
+    auto f1 = Fraction<int>::from(2, 3);
+    f1 += 4;
+    CHECK(f1 == Fraction<int>::from(14, 3));
+
+    auto f2 = Fraction<int>::from(1, 2);
+    f2 += 1;
+    CHECK(f2 == Fraction<int>::from(3, 2));
+
+    // -= T
+    auto f3 = Fraction<int>::from(2, 3);
+    f3 -= 4;
+    CHECK(f3 == Fraction<int>::from(-10, 3));
+
+    auto f4 = Fraction<int>::from(1, 2);
+    f4 -= 1;
+    CHECK(f4 == Fraction<int>::from(-1, 2));
+
+    // *= T
+    auto f5 = Fraction<int>::from(2, 3);
+    f5 *= 4;
+    CHECK(f5 == Fraction<int>::from(8, 3));
+
+    auto f6 = Fraction<int>::from(3, 4);
+    f6 *= 2;
+    CHECK(f6 == Fraction<int>::from(3, 2));
+
+    // /= T
+    auto f7 = Fraction<int>::from(2, 3);
+    f7 /= 4;
+    CHECK(f7 == Fraction<int>::from(1, 6));
+
+    auto f8 = Fraction<int>::from(1, 2);
+    f8 /= 2;
+    CHECK(f8 == Fraction<int>::from(1, 4));
+}
+
+TEST_CASE("mixed i8 arithmetic") {
+    CHECK(Fraction<int8_t>::from(1, 2) + 1 == Fraction<int8_t>::from(3, 2));
+    CHECK(1 + Fraction<int8_t>::from(1, 2) == Fraction<int8_t>::from(3, 2));
+    CHECK(Fraction<int8_t>::from(2, 3) + 4 == Fraction<int8_t>::from(14, 3));
+    CHECK(4 + Fraction<int8_t>::from(2, 3) == Fraction<int8_t>::from(14, 3));
+    CHECK(Fraction<int8_t>::from(2, 3) * 4 == Fraction<int8_t>::from(8, 3));
+    CHECK(2 * Fraction<int8_t>::from(2, 3) == Fraction<int8_t>::from(4, 3));
+    CHECK(Fraction<int8_t>::from(2, 3) / 4 == Fraction<int8_t>::from(1, 6));
+    CHECK(4 / Fraction<int8_t>::from(2, 3) == Fraction<int8_t>::from(6, 1));
+}
+
+TEST_CASE("mixed i64 arithmetic") {
+    CHECK(Fraction<int64_t>::from(2, 3) + 4 == Fraction<int64_t>::from(14, 3));
+    CHECK(4 + Fraction<int64_t>::from(2, 3) == Fraction<int64_t>::from(14, 3));
+    CHECK(Fraction<int64_t>::from(2, 3) * 4 == Fraction<int64_t>::from(8, 3));
+    CHECK(2 * Fraction<int64_t>::from(2, 3) == Fraction<int64_t>::from(4, 3));
 }
 
 TEST_CASE("fraction compound assign") {

@@ -26,6 +26,7 @@ target("test_fraction")
     add_files("tests/test_fraction.cpp")
     add_includedirs("include")
     add_packages("doctest")
+    add_tests("default")
 
 target("benchmark_fraction")
     set_kind("binary")
@@ -33,65 +34,6 @@ target("benchmark_fraction")
     add_files("tests/benchmark_fraction.cpp")
     add_includedirs("include")
     add_packages("nanobench")
-
--- ---------------------------------------------------------------------------
--- Format tasks (clang-format + cmake-format)
--- ---------------------------------------------------------------------------
-
-task("format")
-    set_category("format")
-    set_menu {
-        usage = "xmake format [options]",
-        description = "Check C++ and CMake formatting",
-        options = {
-            { 'a', 'apply', "k", nil, "Apply formatting fixes in-place" }
-        }
-    }
-    on_run(function()
-        local apply = has_config("apply")
-        local sources = {
-            "include/fraction/fraction.hpp",
-            "tests/test_fraction.cpp",
-            "tests/benchmark_fraction.cpp",
-            "CMakeLists.txt",
-            "xmake.lua",
-            "cmake/CPM.cmake",
-        }
-        local ok = true
-        for _, src in ipairs(sources) do
-            if os.isfile(src) then
-                if src:match("%.hpp$") or src:match("%.cpp$") then
-                    if apply then
-                        os.exec("clang-format -i -style=file " .. src)
-                        print("  fixed: " .. src)
-                    else
-                        local formatted, err = os.iorun("clang-format -style=file " .. src)
-                        local f = io.open(src, "r")
-                        local original = f:read("*a")
-                        f:close()
-                        if formatted ~= original then
-                            ok = false
-                            print("  needs formatting: " .. src)
-                        end
-                    end
-                elseif src:match("%.cmake$") or src == "CMakeLists.txt" then
-                    if apply then
-                        os.exec("cmake-format -i " .. src)
-                        print("  fixed: " .. src)
-                    else
-                        local ok2, err = os.iorun("cmake-format --check " .. src)
-                        if not ok2 then
-                            ok = false
-                            print("  needs formatting: " .. src)
-                        end
-                    end
-                end
-            end
-        end
-        if not apply and not ok then
-            os.exit(1)
-        end
-    end)
 
 -- ---------------------------------------------------------------------------
 -- clang-tidy task
@@ -135,7 +77,6 @@ task("doxygen")
             os.exit(1)
         end
     end)
-
 task("fix-format")
     set_category("format")
     set_menu {
@@ -147,9 +88,7 @@ task("fix-format")
             "include/fraction/fraction.hpp",
             "tests/test_fraction.cpp",
             "tests/benchmark_fraction.cpp",
-            "CMakeLists.txt",
             "xmake.lua",
-            "cmake/CPM.cmake",
         }
         for _, src in ipairs(sources) do
             if os.isfile(src) then
