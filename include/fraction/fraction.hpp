@@ -1,76 +1,118 @@
 #pragma once
 
-#include <cstdlib>
-#include <ostream>
+// #include <ostream>
 #include <type_traits>
 
 namespace fraction {
 
-    // ---------------------------------------------------------------------------
-    // const_abs: absolute value for signed integers
-    // ---------------------------------------------------------------------------
+    /**
+     * Computes the greatest common divisor (GCD) of two integers recursively using
+     * Euclid's algorithm.
+     *
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    constexpr auto gcd_recur(int _m, int _n) -> int {
+        // DO NOT replace this tail recursion with a while loop.
+        // With -O3 the compiler optimizes this into a jump (tail-call elimination),
+        // making it faster than the iterative equivalent. This is intentional.
+        if (_n == 0) {
+            return _m < 0 ? -_m : _m;
+        }
+        return gcd_recur(_n, _m % _n);
+    }
 
-    /** @brief Compute the absolute value of a signed integer.
+    /**
+     * Computes the greatest common divisor (GCD) of two integers recursively using
+     * Euclid's algorithm.
      *
-     *  @f[
-     *      |x| = \begin{cases}
-     *          x   & \text{if } x \ge 0 \\
-     *          -x  & \text{if } x < 0
-     *      \end{cases}
-     *  @f]
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    constexpr auto gcd_recur(long _m, long _n) -> long {
+        // DO NOT replace this tail recursion with a while loop.
+        // With -O3 the compiler optimizes this into a jump (tail-call elimination),
+        // making it faster than the iterative equivalent. This is intentional.
+        if (_n == 0) {
+            return _m < 0 ? -_m : _m;
+        }
+        return gcd_recur(_n, _m % _n);
+    }
+
+    /**
+     * Computes the greatest common divisor (GCD) of two integers recursively using
+     * Euclid's algorithm.
      *
-     *  @tparam T A signed integer type
-     *  @param[in] val Input value
-     *  @return The absolute value |val| */
-    template <typename T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, int> = 0>
-    constexpr T const_abs(T val) noexcept {
-        return val < 0 ? -val : val;
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    constexpr auto gcd_recur(unsigned int _m, unsigned int _n) -> unsigned int {
+        // DO NOT replace this tail recursion with a while loop.
+        // With -O3 the compiler optimizes this into a jump (tail-call elimination),
+        // making it faster than the iterative equivalent. This is intentional.
+        if (_n == 0) {
+            return _m;
+        }
+        return gcd_recur(_n, _m % _n);
+    }
+
+    /**
+     * Computes the greatest common divisor (GCD) of two integers recursively using
+     * Euclid's algorithm.
+     *
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    constexpr auto gcd_recur(unsigned long _m, unsigned long _n) -> unsigned long {
+        // DO NOT replace this tail recursion with a while loop.
+        // With -O3 the compiler optimizes this into a jump (tail-call elimination),
+        // making it faster than the iterative equivalent. This is intentional.
+        if (_n == 0) {
+            return _m;
+        }
+        return gcd_recur(_n, _m % _n);
+    }
+
+    /**
+     * Computes the greatest common divisor (GCD) of two integers recursively using
+     * Euclid's algorithm.
+     *
+     * @tparam Mn The integer type.
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    template <typename Mn> constexpr auto gcd_recur(const Mn& _m, const Mn& _n) -> Mn {
+        // DO NOT replace this tail recursion with a while loop.
+        // With -O3 the compiler optimizes this into a jump (tail-call elimination),
+        // making it faster than the iterative equivalent. This is intentional.
+        if (_n == 0) {
+            return _m < 0 ? -_m : _m;
+        }
+        return gcd_recur<Mn>(_n, _m % _n);
     }
 
     // ---------------------------------------------------------------------------
     // const_gcd: greatest common divisor (Euclidean algorithm)
     // ---------------------------------------------------------------------------
 
-    /// @brief Compute the greatest common divisor using Euclid's algorithm.
-    ///
-    /// The algorithm repeatedly replaces the larger number by its remainder
-    /// modulo the smaller number until one reaches zero.
-    ///
-    /// @f[
-    ///     \gcd(a, b) = \gcd(|b|, |a| \bmod |b|), \quad
-    ///     \gcd(a, 0) = |a|
-    /// @f]
-    ///
-    /// @dot
-    ///   digraph gcd_flow {
-    ///     bgcolor="transparent";
-    ///     rankdir=TB;
-    ///     node [shape=box, style=filled, fillcolor="#d4e6f1"];
-    ///     start [label="a = |a|, b = |b|", fillcolor="#a9cce3"];
-    ///     check [label="b == 0?", shape=diamond, fillcolor="#f9e79f"];
-    ///     swap  [label="t = b\nb = a % b\na = t"];
-    ///     done  [label="return |a|", fillcolor="#7fb3d8"];
-    ///     start -> check;
-    ///     check -> swap  [label="No", color="#e74c3c"];
-    ///     check -> done  [label="Yes", color="#27ae60"];
-    ///     swap  -> check;
-    ///   }
-    /// @enddot
-    ///
-    /// @tparam T A signed integer type
-    /// @param[in] a First operand
-    /// @param[in] b Second operand
-    /// @return gcd(a, b), always non-negative
-    template <typename T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, int> = 0>
-    constexpr T const_gcd(T a, T b) noexcept {
-        a = const_abs(a);
-        b = const_abs(b);
-        while (b != 0) {
-            T t = b;
-            b = a % b;
-            a = t;
+    /**
+     * Computes the greatest common divisor (GCD) of two integers.
+     *
+     * @tparam Mn The integer type.
+     * @param _m The first integer.
+     * @param _n The second integer.
+     * @return The GCD of _m and _n.
+     */
+    template <typename Mn> constexpr auto const_gcd(const Mn& _m, const Mn& _n) -> Mn {
+        if (_m == 0) {
+            return _n < 0 ? -_n : _n;
         }
-        return a;
+        return gcd_recur(_m, _n);
     }
 
     // ---------------------------------------------------------------------------
@@ -498,24 +540,24 @@ namespace fraction {
         /// @param[in] rhs The fraction @f$c/d@f$ to multiply by
         /// @return Reference to @c *this
         constexpr Fraction& operator*=(const Fraction& rhs) noexcept {
-            if (is_nan() || rhs.is_nan()) {
-                set_nan();
-                return *this;
-            }
-            if ((is_infinite() && rhs.is_zero()) || (is_zero() && rhs.is_infinite())) {
-                set_nan();
-                return *this;
-            }
-            if (is_zero() || rhs.is_zero()) {
-                set_zero();
-                return *this;
-            }
-            if (is_infinite() || rhs.is_infinite()) {
-                bool neg = is_negative() != rhs.is_negative();
-                numer_ = neg ? -1 : 1;
-                denom_ = 0;
-                return *this;
-            }
+            // if (is_nan() || rhs.is_nan()) {
+            //     set_nan();
+            //     return *this;
+            // }
+            // if ((is_infinite() && rhs.is_zero()) || (is_zero() && rhs.is_infinite())) {
+            //     set_nan();
+            //     return *this;
+            // }
+            // if (is_zero() || rhs.is_zero()) {
+            //     set_zero();
+            //     return *this;
+            // }
+            // if (is_infinite() || rhs.is_infinite()) {
+            //     bool neg = is_negative() != rhs.is_negative();
+            //     numer_ = neg ? -1 : 1;
+            //     denom_ = 0;
+            //     return *this;
+            // }
 
             // Cross-reduce before multiplying
             Fraction r = rhs;
@@ -528,7 +570,7 @@ namespace fraction {
 
             numer_ *= r.numer_;
             denom_ *= r.denom_;
-
+            
             return *this;
         }
 
@@ -541,28 +583,28 @@ namespace fraction {
         /// @param[in] rhs The fraction @f$c/d@f$ to divide by
         /// @return Reference to @c *this
         constexpr Fraction& operator/=(const Fraction& rhs) noexcept {
-            if (is_nan() || rhs.is_nan()) {
-                set_nan();
-                return *this;
-            }
-            if (is_infinite() && rhs.is_infinite()) {
-                set_nan();
-                return *this;
-            }
-            if (is_zero() && rhs.is_zero()) {
-                set_nan();
-                return *this;
-            }
-            if (rhs.is_zero()) {
-                numer_ = is_negative() ? -1 : 1;
-                denom_ = 0;
-                return *this;
-            }
-            if (is_infinite()) return *this;
-            if (rhs.is_infinite()) {
-                set_zero();
-                return *this;
-            }
+            // if (is_nan() || rhs.is_nan()) {
+            //     set_nan();
+            //     return *this;
+            // }
+            // if (is_infinite() && rhs.is_infinite()) {
+            //     set_nan();
+            //     return *this;
+            // }
+            // if (is_zero() && rhs.is_zero()) {
+            //     set_nan();
+            //     return *this;
+            // }
+            // if (rhs.is_zero()) {
+            //     numer_ = is_negative() ? -1 : 1;
+            //     denom_ = 0;
+            //     return *this;
+            // }
+            // if (is_infinite()) return *this;
+            // if (rhs.is_infinite()) {
+            //     set_zero();
+            //     return *this;
+            // }
 
             // a/b ÷ c/d = a*d / b*c
             Fraction r = rhs;
@@ -584,34 +626,24 @@ namespace fraction {
         // -----------------------------------------------------------------------
 
         constexpr Fraction& operator+=(T rhs) noexcept {
+            // n/d + rhs = (n + d*rhs) / d
             if (denom_ == 1) {
                 numer_ += rhs;
-                reduce();
                 return *this;
             }
-            T t = denom_;
-            denom_ = rhs;
-            T common_n = reduce();
-            denom_ = t;
             numer_ += denom_ * rhs;
             reduce();
-            numer_ *= common_n;
             return *this;
         }
 
         constexpr Fraction& operator-=(T rhs) noexcept {
+            // n/d - rhs = (n - d*rhs) / d
             if (denom_ == 1) {
                 numer_ -= rhs;
-                reduce();
                 return *this;
             }
-            T t = denom_;
-            denom_ = rhs;
-            T common_n = reduce();
-            denom_ = t;
             numer_ -= denom_ * rhs;
             reduce();
-            numer_ *= common_n;
             return *this;
         }
 
@@ -637,7 +669,13 @@ namespace fraction {
 
         /// @brief Equality comparison: @f$\frac{a}{b} = \frac{c}{d} \iff a = c \land b = d@f$.
         constexpr bool operator==(const Fraction& rhs) const noexcept {
-            return numer_ == rhs.numer_ && denom_ == rhs.denom_;
+            if (denom_ == rhs.denom_) return numer_ == rhs.numer_;
+            // Cross-multiply with reduction
+            Fraction lhs_f = from_raw(numer_, rhs.numer_);
+            Fraction rhs_f = from_raw(denom_, rhs.denom_);
+            lhs_f.reduce();
+            rhs_f.reduce();
+            return lhs_f.numer_ * rhs_f.denom_ == lhs_f.denom_ * rhs_f.numer_;
         }
 
         /// @brief Inequality comparison.
@@ -786,7 +824,8 @@ namespace fraction {
         /// Prints the fraction as @c "n/d", or @c "inf", @c "-inf", @c "nan"
         /// for special values. Integer values (denominator = 1) print as
         /// a plain number.
-        friend std::ostream& operator<<(std::ostream& os, const Fraction& f) {
+        template <typename OStream>
+        friend OStream& operator<<(OStream& os, const Fraction& f) {
             if (f.is_nan()) {
                 os << "nan";
             } else if (f.is_infinite()) {

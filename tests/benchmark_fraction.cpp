@@ -5,7 +5,6 @@
 #include <fraction/fraction.hpp>
 
 using fraction::archimedes;
-using fraction::const_abs;
 using fraction::const_gcd;
 using fraction::Fraction;
 
