@@ -570,7 +570,7 @@ namespace fraction {
 
             numer_ *= r.numer_;
             denom_ *= r.denom_;
-            
+
             return *this;
         }
 
@@ -824,8 +824,7 @@ namespace fraction {
         /// Prints the fraction as @c "n/d", or @c "inf", @c "-inf", @c "nan"
         /// for special values. Integer values (denominator = 1) print as
         /// a plain number.
-        template <typename OStream>
-        friend OStream& operator<<(OStream& os, const Fraction& f) {
+        template <typename OStream> friend OStream& operator<<(OStream& os, const Fraction& f) {
             if (f.is_nan()) {
                 os << "nan";
             } else if (f.is_infinite()) {
