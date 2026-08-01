@@ -83,3 +83,14 @@ Licensed under either of
 - MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
+
+## Related
+
+- [fractions-cpp](https://github.com/luk036/fractions-cpp) — Full-featured C++ version
+- [fractions-rs](https://github.com/luk036/fractions-rs) — Rust implementation (upstream)
+
+## CI
+
+This simplified variant runs a lighter CI set (`cmake.yml`, `xmake.yml`, `release.yml`)
+than the full-featured [fractions-cpp](https://github.com/luk036/fractions-cpp), which additionally
+runs `ubuntu/macos/windows/install/documentation` workflows.
