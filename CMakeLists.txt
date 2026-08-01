@@ -48,7 +48,8 @@ target_include_directories(
 enable_testing()
 
 if(FRACTION_BUILD_TESTS)
-  # Try system-installed doctest first (Ubuntu: doctest-dev, macOS: brew install doctest, Termux: doctest)
+  # Try system-installed doctest first (Ubuntu: doctest-dev, macOS: brew install doctest, Termux:
+  # doctest)
   find_package(doctest CONFIG QUIET)
 
   if(doctest_FOUND)
